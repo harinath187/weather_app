@@ -43,7 +43,8 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            set -e
             sudo mkdir -p /var/www/html
             sudo rm -rf /var/www/html/*
-            sudo cp -r /tmp/weather_app/dist/* /var/www/html/
+            sudo cp -r /tmp/weather_app/* /var/www/html/
             sudo systemctl reload nginx
