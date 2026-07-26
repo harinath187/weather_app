@@ -9,7 +9,9 @@ function ForecastRow({ day }) {
   return (
     <div className="flex items-center justify-between py-2.5">
       <div className="flex items-center gap-3">
-        <img src={`https:${day.day.condition.icon}`} alt={day.day.condition.text} className="h-9 w-9" />
+        <span className="text-3xl leading-none" role="img" aria-label={day.day.condition.text}>
+          {day.day.condition.icon}
+        </span>
         <span className="text-sm font-semibold text-text-primary">
           {formatTemp(day.day.maxtemp_c, day.day.maxtemp_f, isMetric)}
         </span>

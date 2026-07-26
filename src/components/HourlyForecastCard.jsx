@@ -35,7 +35,9 @@ function HourlyCell({ label, hour, gradientClass }) {
       className={`flex flex-1 flex-col items-center gap-2 rounded-xl bg-card-bg py-4 dark:bg-[#232323] ${gradientClass}`}
     >
       <span className="text-xs font-medium text-text-muted">{label}</span>
-      <img src={`https:${hour.condition.icon}`} alt={hour.condition.text} className="h-9 w-9" />
+      <span className="text-3xl leading-none" role="img" aria-label={hour.condition.text}>
+        {hour.condition.icon}
+      </span>
       <span className="text-sm font-semibold text-text-primary">
         {formatTemp(hour.temp_c, hour.temp_f, isMetric)}
       </span>

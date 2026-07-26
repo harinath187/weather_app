@@ -31,11 +31,9 @@ export function CurrentWeatherCard({ current, astro }) {
         <p className="mt-2 text-xs text-text-muted">
           Feels like {formatTemp(current.feelslike_c, current.feelslike_f, isMetric)}
         </p>
-        <img
-          src={`https:${current.condition.icon}`}
-          alt={current.condition.text}
-          className="mt-3 h-14 w-14"
-        />
+        <span className="mt-3 text-5xl leading-none" role="img" aria-label={current.condition.text}>
+          {current.condition.icon}
+        </span>
         <p className="text-sm font-medium text-text-primary">{current.condition.text}</p>
       </div>
 

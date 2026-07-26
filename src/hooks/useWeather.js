@@ -16,7 +16,7 @@ export function useWeather() {
     } catch (err) {
       const message =
         err instanceof WeatherApiError
-          ? err.code === 1006
+          ? err.code === 'no_match'
             ? 'No matching location found. Try a different city name.'
             : err.message
           : 'Something went wrong. Please try again.';
