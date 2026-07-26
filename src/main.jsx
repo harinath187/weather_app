@@ -4,13 +4,16 @@ import './index.css'
 import App from './App.jsx'
 import { UnitProvider } from './context/UnitContext'
 import { LocationProvider } from './context/LocationContext'
+import { ThemeProvider } from './context/ThemeContext'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <UnitProvider>
-      <LocationProvider>
-        <App />
-      </LocationProvider>
-    </UnitProvider>
+    <ThemeProvider>
+      <UnitProvider>
+        <LocationProvider>
+          <App />
+        </LocationProvider>
+      </UnitProvider>
+    </ThemeProvider>
   </StrictMode>,
 )

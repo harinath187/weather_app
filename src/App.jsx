@@ -1,14 +1,41 @@
 import { useCallback, useEffect, useState } from 'react';
-import { SearchBar } from './components/SearchBar';
-import { UnitToggle } from './components/UnitToggle';
-import { CurrentWeather } from './components/CurrentWeather';
-import { HourlyForecast } from './components/HourlyForecast';
-import { DailyForecast } from './components/DailyForecast';
-import { LoadingSkeleton } from './components/LoadingSkeleton';
-import { ErrorMessage } from './components/ErrorMessage';
-import { EmptyState } from './components/EmptyState';
+import { TopBar } from './components/TopBar';
+import { LocationTimeCard } from './components/LocationTimeCard';
+import { CurrentWeatherCard } from './components/CurrentWeatherCard';
+import { FiveDayForecastCard } from './components/FiveDayForecastCard';
+import { HourlyForecastCard } from './components/HourlyForecastCard';
 import { useWeather } from './hooks/useWeather';
 import { useRecentLocations } from './context/LocationContext';
+
+function CardSkeleton() {
+  return <div className="h-full animate-pulse rounded-2xl bg-card-bg" />;
+}
+
+function ErrorBanner({ message, onRetry }) {
+  return (
+    <div className="col-span-2 flex flex-col items-center gap-3 rounded-2xl bg-card-bg p-8 text-center">
+      <p className="text-sm font-medium text-red-400">{message}</p>
+      {onRetry && (
+        <button
+          type="button"
+          onClick={onRetry}
+          className="rounded-full bg-accent-green px-4 py-2 text-sm font-semibold text-white"
+        >
+          Try again
+        </button>
+      )}
+    </div>
+  );
+}
+
+function EmptyBanner() {
+  return (
+    <div className="col-span-2 flex flex-col items-center justify-center gap-2 rounded-2xl bg-card-bg p-10 text-center">
+      <p className="text-sm font-medium text-text-primary">Search for a city or use your current location</p>
+      <p className="text-xs text-text-muted">Weather details will appear here once a location is loaded.</p>
+    </div>
+  );
+}
 
 function App() {
   const { data, loading, error, fetchWeather } = useWeather();
@@ -43,7 +70,7 @@ function App() {
         .then((status) => {
           if (status.state === 'granted') {
             navigator.geolocation.getCurrentPosition((position) => {
-              runFetch(`${position.coords.latitude},${position.coords.longitude}`, null);
+              runFetch(`${position.coords.latitude},${position.coords.longitude}`);
             });
           }
         })
@@ -53,27 +80,43 @@ function App() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
-      <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 lg:py-10">
-        <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="flex-1">
-            <h1 className="mb-3 text-2xl font-bold text-slate-900 dark:text-white">Weather</h1>
-            <SearchBar onSelectLocation={runFetch} />
-          </div>
-          <UnitToggle />
-        </header>
+    <div className="min-h-screen bg-app-bg">
+      <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-4 py-6 sm:px-6 lg:py-8">
+        <TopBar onSelectLocation={runFetch} />
 
-        <main className="space-y-4">
-          {loading && <LoadingSkeleton />}
-          {!loading && error && (
-            <ErrorMessage message={error} onRetry={lastQuery ? () => runFetch(lastQuery) : undefined} />
+        <main className="grid flex-1 grid-cols-1 gap-4 md:grid-cols-2">
+          {loading && (
+            <>
+              <div className="grid grid-rows-2 gap-4">
+                <CardSkeleton />
+                <CardSkeleton />
+              </div>
+              <div className="grid grid-rows-2 gap-4">
+                <CardSkeleton />
+                <CardSkeleton />
+              </div>
+            </>
           )}
-          {!loading && !error && !hasSearched && <EmptyState />}
+
+          {!loading && error && (
+            <ErrorBanner message={error} onRetry={lastQuery ? () => runFetch(lastQuery) : undefined} />
+          )}
+
+          {!loading && !error && !hasSearched && <EmptyBanner />}
+
           {!loading && !error && data && (
             <>
-              <CurrentWeather location={data.location} current={data.current} />
-              <HourlyForecast hours={data.forecast.forecastday[0].hour} />
-              <DailyForecast days={data.forecast.forecastday} />
+              <div className="grid grid-rows-2 gap-4">
+                <LocationTimeCard location={data.location} />
+                <FiveDayForecastCard days={data.forecast.forecastday} />
+              </div>
+              <div className="grid grid-rows-2 gap-4">
+                <CurrentWeatherCard
+                  current={data.current}
+                  astro={data.forecast.forecastday[0]?.astro}
+                />
+                <HourlyForecastCard days={data.forecast.forecastday} />
+              </div>
             </>
           )}
         </main>

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
+import { Search } from 'lucide-react';
 import { useDebounce } from '../hooks/useDebounce';
-import { useGeolocation } from '../hooks/useGeolocation';
 import { searchLocations } from '../services/weatherApi';
 import { useRecentLocations } from '../context/LocationContext';
 
@@ -13,7 +13,6 @@ export function SearchBar({ onSelectLocation }) {
   const containerRef = useRef(null);
 
   const debouncedQuery = useDebounce(query, 300);
-  const { locate, loading: locating, error: geoError } = useGeolocation();
   const { recent, addRecent } = useRecentLocations();
 
   useEffect(() => {
@@ -64,7 +63,26 @@ export function SearchBar({ onSelectLocation }) {
     setActiveIndex(-1);
   }
 
+  function handleSubmit() {
+    const trimmed = query.trim();
+    if (activeIndex >= 0 && suggestions[activeIndex]) {
+      handleSelect(suggestions[activeIndex]);
+    } else if (suggestions.length > 0) {
+      handleSelect(suggestions[0]);
+    } else if (trimmed) {
+      onSelectLocation(trimmed, null);
+      setSuggestions([]);
+      setIsOpen(false);
+      setActiveIndex(-1);
+    }
+  }
+
   function handleKeyDown(event) {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      handleSubmit();
+      return;
+    }
     if (!isOpen || suggestions.length === 0) return;
     if (event.key === 'ArrowDown') {
       event.preventDefault();
@@ -72,20 +90,8 @@ export function SearchBar({ onSelectLocation }) {
     } else if (event.key === 'ArrowUp') {
       event.preventDefault();
       setActiveIndex((prev) => (prev - 1 + suggestions.length) % suggestions.length);
-    } else if (event.key === 'Enter' && activeIndex >= 0) {
-      event.preventDefault();
-      handleSelect(suggestions[activeIndex]);
     } else if (event.key === 'Escape') {
       setIsOpen(false);
-    }
-  }
-
-  async function handleUseMyLocation() {
-    try {
-      const { lat, lon } = await locate();
-      onSelectLocation(`${lat},${lon}`, null);
-    } catch {
-      // error message surfaced via geoError below
     }
   }
 
@@ -96,81 +102,67 @@ export function SearchBar({ onSelectLocation }) {
   return (
     <div className="w-full max-w-xl" ref={containerRef}>
       <div className="relative">
-        <div className="flex gap-2">
-          <div className="relative flex-1">
-            <input
-              type="text"
-              role="combobox"
-              aria-expanded={isOpen && suggestions.length > 0}
-              aria-controls="search-suggestions"
-              aria-autocomplete="list"
-              aria-label="Search for a city"
-              placeholder="Search for a city..."
-              value={query}
-              onChange={(event) => {
-                setQuery(event.target.value);
-                setIsOpen(true);
-                setActiveIndex(-1);
-              }}
-              onFocus={() => setIsOpen(true)}
-              onKeyDown={handleKeyDown}
-              className="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 shadow-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:focus:ring-sky-900"
-            />
-            {isOpen && suggestions.length > 0 && (
-              <ul
-                id="search-suggestions"
-                role="listbox"
-                className="absolute z-20 mt-1 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-800"
-              >
-                {suggestions.map((place, index) => (
-                  <li
-                    key={place.id}
-                    role="option"
-                    aria-selected={index === activeIndex}
-                    onMouseDown={() => handleSelect(place)}
-                    onMouseEnter={() => setActiveIndex(index)}
-                    className={`cursor-pointer px-4 py-2 text-sm ${
-                      index === activeIndex
-                        ? 'bg-sky-100 dark:bg-sky-900/40'
-                        : 'hover:bg-slate-50 dark:hover:bg-slate-700'
-                    }`}
-                  >
-                    <span className="font-medium text-slate-900 dark:text-white">
-                      {place.name}
-                    </span>
-                    <span className="text-slate-500 dark:text-slate-400">
-                      {place.region ? `, ${place.region}` : ''}, {place.country}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-          <button
-            type="button"
-            onClick={handleUseMyLocation}
-            disabled={locating}
-            aria-label="Use my location"
-            className="flex shrink-0 items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-60 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
-          >
-            {locating ? 'Locating…' : '📍 My location'}
-          </button>
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
+          <input
+            type="text"
+            role="combobox"
+            aria-expanded={isOpen && suggestions.length > 0}
+            aria-controls="search-suggestions"
+            aria-autocomplete="list"
+            aria-label="Search for a city"
+            placeholder="Search for your preferred city"
+            value={query}
+            onChange={(event) => {
+              setQuery(event.target.value);
+              setIsOpen(true);
+              setActiveIndex(-1);
+            }}
+            onFocus={() => setIsOpen(true)}
+            onKeyDown={handleKeyDown}
+            className="w-full rounded-full bg-card-bg py-2.5 pl-11 pr-4 text-sm text-text-primary outline-none transition placeholder:text-text-muted focus:ring-2 focus:ring-accent-green/40"
+          />
+          {isOpen && suggestions.length > 0 && (
+            <ul
+              id="search-suggestions"
+              role="listbox"
+              className="absolute z-20 mt-1 w-full overflow-hidden rounded-2xl bg-card-bg shadow-lg"
+            >
+              {suggestions.map((place, index) => (
+                <li
+                  key={place.id}
+                  role="option"
+                  aria-selected={index === activeIndex}
+                  onMouseDown={() => handleSelect(place)}
+                  onMouseEnter={() => setActiveIndex(index)}
+                  className={`cursor-pointer px-4 py-2 text-sm ${
+                    index === activeIndex ? 'bg-accent-green/10' : 'hover:bg-black/5 dark:hover:bg-white/5'
+                  }`}
+                >
+                  <span className="font-medium text-text-primary">{place.name}</span>
+                  <span className="text-text-muted">
+                    {place.region ? `, ${place.region}` : ''}, {place.country}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
-        {(geoError || searchError) && (
-          <p className="mt-1 text-xs text-red-500" role="alert">
-            {geoError || searchError}
+        {searchError && (
+          <p className="mt-1 text-xs text-red-400" role="alert">
+            {searchError}
           </p>
         )}
       </div>
 
       {recent.length > 0 && (
-        <div className="mt-3 flex flex-wrap gap-2">
+        <div className="mt-2 flex flex-wrap justify-center gap-2">
           {recent.map((location) => (
             <button
               key={`${location.name}-${location.country}`}
               type="button"
               onClick={() => handleRecentClick(location)}
-              className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-600 transition hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+              className="rounded-full bg-card-bg px-3 py-1 text-xs font-medium text-text-muted transition hover:text-text-primary"
             >
               {location.name}
             </button>

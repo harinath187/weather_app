@@ -1,7 +1,35 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
 @import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  --color-app-bg: #f5f5f5;
+  --color-card-bg: #ececec;
+  --color-text-primary: #1a1a1a;
+  --color-text-muted: #8a8a8a;
+  --color-border: rgba(0, 0, 0, 0.06);
+
+  --color-accent-green: #22c55e;
+  --color-accent-sun: #fdb813;
+}
+
+.dark {
+  --color-app-bg: #1a1a1a;
+  --color-card-bg: #2b2b2b;
+  --color-text-primary: #ffffff;
+  --color-text-muted: #9a9a9a;
+  --color-border: rgba(255, 255, 255, 0.08);
+}
 
 body {
   margin: 0;
+  font-family: var(--font-sans);
+  background-color: var(--color-app-bg);
+  color: var(--color-text-primary);
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 #root {
